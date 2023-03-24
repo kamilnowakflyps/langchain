@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, validator
 import langchain
 from langchain.callbacks import get_callback_manager
 from langchain.callbacks.base import BaseCallbackManager
+from langchain.exceptions import CouldNotParseLLMOutput
 from langchain.schema import BaseMemory
 
 
@@ -111,6 +112,9 @@ class Chain(BaseModel, ABC):
         )
         try:
             outputs = self._call(inputs)
+        #except CouldNotParseLLMOutput:
+        #    print("There was an error parsing the output. Trying again.")
+        #    outputs = self._call(inputs)
         except (KeyboardInterrupt, Exception) as e:
             self.callback_manager.on_chain_error(e, verbose=self.verbose)
             raise e
