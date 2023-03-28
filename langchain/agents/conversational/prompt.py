@@ -24,6 +24,7 @@ When you have a response to say to the Human, or if you do not need to use a too
 
 ```
 Thought: Do I need to use a tool? No
+Action: Do not use tools 
 {ai_prefix}: [your response here]
 ```"""
 
