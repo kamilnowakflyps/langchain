@@ -14,6 +14,7 @@ from langchain.agents.tools import InvalidTool
 from langchain.callbacks.base import BaseCallbackManager
 from langchain.chains.base import Chain
 from langchain.chains.llm import LLMChain
+from langchain.exceptions import CouldNotParseLLMOutput
 from langchain.input import get_color_mapping
 from langchain.llms.base import BaseLLM
 from langchain.prompts.base import BasePromptTemplate
@@ -502,9 +503,13 @@ class AgentExecutor(Chain, BaseModel):
         iterations = 0
         # We now enter the agent loop (until it returns something).
         while self._should_continue(iterations):
-            next_step_output = self._take_next_step(
-                name_to_tool_map, color_mapping, inputs, intermediate_steps
-            )
+            try:
+                next_step_output = self._take_next_step(
+                    name_to_tool_map, color_mapping, inputs, intermediate_steps
+                )
+            except CouldNotParseLLMOutput as e:
+                print("\nCould not parse output, trying again...")
+                self._call(inputs=inputs)
             if isinstance(next_step_output, AgentFinish):
                 return self._return(next_step_output, intermediate_steps)
 
