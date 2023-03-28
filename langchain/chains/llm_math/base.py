@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from pydantic import BaseModel, Extra
 
+from langchain.exceptions import CouldNotParseLLMOutput
 from langchain.chains.base import Chain
 from langchain.chains.llm import LLMChain
 from langchain.chains.llm_math.prompt import PROMPT
@@ -65,7 +66,7 @@ class LLMMathChain(Chain, BaseModel):
         elif "Answer:" in t:
             answer = "Answer: " + t.split("Answer:")[-1]
         else:
-            raise ValueError(f"unknown format from LLM: {t}")
+            raise CouldNotParseLLMOutput(t)
         return {self.output_key: answer}
 
     def _call(self, inputs: Dict[str, str]) -> Dict[str, str]:

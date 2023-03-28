@@ -9,6 +9,7 @@ from langchain.agents.mrkl.prompt import FORMAT_INSTRUCTIONS, PREFIX, SUFFIX
 from langchain.agents.tools import Tool
 from langchain.callbacks.base import BaseCallbackManager
 from langchain.chains import LLMChain
+from langchain.exceptions import CouldNotParseLLMOutput
 from langchain.llms.base import BaseLLM
 from langchain.prompts import PromptTemplate
 from langchain.tools.base import BaseTool
@@ -30,6 +31,8 @@ class ChainConfig(NamedTuple):
     action_description: str
 
 
+
+
 def get_action_and_input(llm_output: str) -> Tuple[str, str]:
     """Parse out the action and input from the LLM output.
 
@@ -43,7 +46,7 @@ def get_action_and_input(llm_output: str) -> Tuple[str, str]:
     regex = r"Action: (.*?)[\n]*Action Input: (.*)"
     match = re.search(regex, llm_output, re.DOTALL)
     if not match:
-        raise ValueError(f"Could not parse LLM output: `{llm_output}`")
+        raise CouldNotParseLLMOutput(llm_output)
     action = match.group(1).strip()
     action_input = match.group(2)
     return action, action_input.strip(" ").strip('"')
@@ -135,7 +138,11 @@ class ZeroShotAgent(Agent):
                 )
 
     def _extract_tool_and_input(self, text: str) -> Optional[Tuple[str, str]]:
-        return get_action_and_input(text)
+        try:
+            res = get_action_and_input(text)
+        except CouldNotParseLLMOutput:
+            res = None
+        return res
 
 
 class MRKLChain(AgentExecutor):
